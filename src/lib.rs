@@ -1,39 +1,24 @@
 use std::collections::HashMap;
 
-fn rename_object_key<'a>(obj: &'a HashMap<&'a str, &'a str>, new_keys: &'a HashMap<&'a str, &'a str>) -> HashMap<&'a str, &'a str> {
-    let mut key_values = Vec::new();
-
-    for (key, value) in obj {
-        let new_key = match new_keys.get(key) {
-            Some(new_key) => new_key,
-            None => key,
-        };
-        let new_pair = (new_key, value);
-        key_values.push(new_pair);
+pub fn rename_key<K, V>(map: &mut HashMap<K, V>, old_key: K, new_key: K)
+where
+    K: std::cmp::Eq + std::hash::Hash,
+{
+    if map.contains_key(&old_key) {
+        let value = map.remove(&old_key).unwrap();
+        map.insert(new_key, value);
     }
-
-    key_values.into_iter().collect()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[test]
+fn test_rename_key() {
+    let mut map = HashMap::new();
+    map.insert("a", 1);
+    map.insert("b", 2);
+    map.insert("c", 3);
 
-    #[test]
-    fn test_rename_object_key() {
-        let obj = [("key1", "value1"), ("key2", "value2")]
-            .iter()
-            .cloned()
-            .collect::<HashMap<&str, &str>>();
-        let new_keys = [("key1", "new_key1"), ("key2", "new_key2")]
-            .iter()
-            .cloned()
-            .collect::<HashMap<&str, &str>>();
-        let expected_output = [("new_key1", "value1"), ("new_key2", "value2")]
-            .iter()
-            .cloned()
-            .collect::<HashMap<&str, &str>>();
+    rename_key(&mut map, "a", "A");
 
-        assert_eq!(rename_object_key(&obj, &new_keys), expected_output);
-    }
+    assert_eq!(map.get("a"), None);
+    assert_eq!(map.get("A"), Some(&1));
 }
